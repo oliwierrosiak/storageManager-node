@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
+import mysql from 'mysql2'
 import dotenv from 'dotenv'
-import ProductModel from "./models/productsModel.js";
-import RackModel from "./models/rackModel.js";
 
 dotenv.config()
 
+export const connection = mysql.createConnection({
+    host:process.env.database_address,
+    user:process.env.database_user,
+    database:process.env.database_name,
+})
 
-export const Product = mongoose.model("product",ProductModel)
+connection.connect()
 
-export const Rack = mongoose.model("rack",RackModel)
-
-mongoose.connect(process.env.database)

@@ -1,24 +1,21 @@
-import { response } from "express"
-import { Product, Rack } from "../db/dbConfig.js"
-
-
+import { connection } from "../db/dbConfig.js"
+import { selectData, updateData } from "../db/dbMethods.js"
 class ApiController
 {
     async release(req,res)
     {
         try
         {
-            const rack = await Rack.findOne({positionCode:req.body.rack})
+            const rack = await selectData(`SELECT * FROM racks WHERE positionCode = ${req.body.rack}`)
             if(rack)
             {  
-                const product = await Product.findOne({barcode:req.body.product})
+                const product = await selectData(`SELECT * FROM products WHERE barcode = ${req.body.product}`)
+                
                 if(product)
                 {
                     if(rack.product == req.body.product)
                     {
-                    
-                        rack.product = 0
-                        await rack.save()
+                        await updateData(`UPDATE racks SET product = 0 WHERE positionCode = ${req.body.rack}`)
                         const response = {
                             product:product.name,
                             position:rack.positionCode
@@ -55,7 +52,6 @@ class ApiController
         }
         catch(ex)
         {
-            console.log(ex)
             res.sendStatus(503)
         }
     }
@@ -63,15 +59,15 @@ class ApiController
     async admission(req,res)
     {
         try
-        {   
-            const product = await Product.findOne({barcode:req.body.product})
-            const rack = await Rack.findOne({positionCode:req.body.rack})
+        {
+            const product = await selectData(`SELECT * FROM products WHERE barcode = ${req.body.product}`)
+            const rack = await selectData(`SELECT * FROM racks WHERE positionCode = ${req.body.rack}`)
+
             if(product && rack)
             {
                 if(!rack.product)
                 {
-                    rack.product = product.barcode
-                    await rack.save()
+                    await updateData(`UPDATE racks SET product = ${product.barcode} WHERE positionCode = ${rack.positionCode}`)
                     const response = {
                         product:product.name,
                         position:rack.positionCode
@@ -114,7 +110,6 @@ class ApiController
             res.sendStatus(503)
         }
     }
-
 }
 
 export default new ApiController
